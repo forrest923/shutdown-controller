@@ -121,7 +121,17 @@
                     <DatePicker Grid.Row="1" Grid.Column="1" SelectedDate="{Binding EndDate}" Margin="0,5"/>
                     
                     <TextBlock Grid.Row="2" Grid.Column="0" Text="关机时间：" VerticalAlignment="Center"/>
-                    <TimePicker Grid.Row="2" Grid.Column="1" SelectedTime="{Binding DateRangeTime}" Margin="0,5"/>
+                    <Grid Grid.Row="2" Grid.Column="1" Margin="0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <TextBox Grid.Column="0" Text="{Binding DateRangeTime.Hours}" TextAlignment="Center" MaxLength="2"/>
+                        <TextBlock Grid.Column="1" Text=":" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="5,0"/>
+                        <TextBox Grid.Column="2" Text="{Binding DateRangeTime.Minutes}" TextAlignment="Center" MaxLength="2"/>
+                    </Grid>
                 </Grid>
             </GroupBox>
             
@@ -142,8 +152,18 @@
                                     <CheckBox Grid.Column="0" Content="{Binding DayName}" 
                                               IsChecked="{Binding IsEnabled}" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="1" Text="关机时间：" VerticalAlignment="Center"/>
-                                    <TimePicker Grid.Column="2" SelectedTime="{Binding Time}" 
-                                                IsEnabled="{Binding IsEnabled}"/>
+                                    
+                                    <Grid Grid.Column="2" IsEnabled="{Binding IsEnabled}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <TextBox Grid.Column="0" Text="{Binding Time.Hours}" TextAlignment="Center" MaxLength="2"/>
+                                        <TextBlock Grid.Column="1" Text=":" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="5,0"/>
+                                        <TextBox Grid.Column="2" Text="{Binding Time.Minutes}" TextAlignment="Center" MaxLength="2"/>
+                                    </Grid>
                                 </Grid>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
