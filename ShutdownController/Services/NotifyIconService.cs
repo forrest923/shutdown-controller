@@ -19,27 +19,37 @@ namespace ShutdownController.Services
         /// </summary>
         public NotifyIconService()
         {
-            // 创建托盘图标
-            _notifyIcon = new NotifyIcon
+            try
             {
-                Icon = Icon.ExtractAssociatedIcon(Assembly.GetEntryAssembly().Location),
-                Text = "关机控制器",
-                Visible = true
-            };
-            
-            // 创建右键菜单
-            ContextMenu contextMenu = new ContextMenu();
-            MenuItem settingsMenuItem = new MenuItem("设置", OnSettingsClick);
-            MenuItem exitMenuItem = new MenuItem("退出", OnExitClick);
-            
-            contextMenu.MenuItems.Add(settingsMenuItem);
-            contextMenu.MenuItems.Add(new MenuItem("-")); // 分隔线
-            contextMenu.MenuItems.Add(exitMenuItem);
-            
-            _notifyIcon.ContextMenu = contextMenu;
-            
-            // 双击事件
-            _notifyIcon.DoubleClick += OnNotifyIconDoubleClick;
+                // 创建托盘图标
+                _notifyIcon = new NotifyIcon
+                {
+                    Icon = Icon.ExtractAssociatedIcon(Assembly.GetEntryAssembly().Location),
+                    Text = "关机控制器",
+                    Visible = true
+                };
+                
+                // 创建右键菜单
+                ContextMenu contextMenu = new ContextMenu();
+                MenuItem settingsMenuItem = new MenuItem("设置", OnSettingsClick);
+                MenuItem exitMenuItem = new MenuItem("退出", OnExitClick);
+                
+                contextMenu.MenuItems.Add(settingsMenuItem);
+                contextMenu.MenuItems.Add(new MenuItem("-")); // 分隔线
+                contextMenu.MenuItems.Add(exitMenuItem);
+                
+                _notifyIcon.ContextMenu = contextMenu;
+                
+                // 双击事件
+                _notifyIcon.DoubleClick += OnNotifyIconDoubleClick;
+                
+                LogService.LogInfo("托盘图标服务已成功初始化");
+            }
+            catch (Exception ex)
+            {
+                LogService.LogError("创建托盘图标失败", ex);
+                throw;  // 重新抛出异常，因为托盘图标是应用程序的关键功能
+            }
         }
         
         /// <summary>
@@ -63,8 +73,17 @@ namespace ShutdownController.Services
         /// </summary>
         private void OnExitClick(object sender, EventArgs e)
         {
-            LoginWindow loginWindow = new LoginWindow(isExitMode: true);
-            loginWindow.ShowDialog();
+            try
+            {
+                LoginWindow loginWindow = new LoginWindow(isExitMode: true);
+                loginWindow.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                LogService.LogError("打开退出登录窗口失败", ex);
+                // 如果打开窗口失败，直接退出应用程序
+                System.Windows.Application.Current.Shutdown();
+            }
         }
         
         /// <summary>
@@ -72,8 +91,15 @@ namespace ShutdownController.Services
         /// </summary>
         private void ShowLoginWindow()
         {
-            LoginWindow loginWindow = new LoginWindow();
-            loginWindow.ShowDialog();
+            try
+            {
+                LoginWindow loginWindow = new LoginWindow();
+                loginWindow.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                LogService.LogError("打开登录窗口失败", ex);
+            }
         }
         
         /// <summary>
@@ -93,10 +119,11 @@ namespace ShutdownController.Services
         {
             if (!_disposed)
             {
-                if (disposing)
+                if (disposing && _notifyIcon != null)
                 {
                     _notifyIcon.Visible = false;
                     _notifyIcon.Dispose();
+                    LogService.LogInfo("托盘图标服务已释放");
                 }
                 
                 _disposed = true;

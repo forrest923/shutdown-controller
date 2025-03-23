@@ -21,6 +21,9 @@ namespace ShutdownController
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            // 设置应用程序的关闭模式为显式关闭，防止没有窗口时自动退出
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            
             // 确保应用程序只有一个实例运行
             bool createdNew;
             _appMutex = new Mutex(true, MutexName, out createdNew);
@@ -72,7 +75,12 @@ namespace ShutdownController
             
             if (setupWindow.IsSetupCompleted)
             {
+                // 启动关机服务
                 _shutdownService.Start();
+                
+                // 显示成功消息，提示用户应用程序将在系统托盘运行
+                MessageBox.Show("设置完成！应用程序将在系统托盘中运行，您可以通过双击托盘图标打开设置界面。", 
+                                "设置成功", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             else
             {
