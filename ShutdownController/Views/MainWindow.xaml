@@ -107,9 +107,9 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         
-                        <TextBox Grid.Column="0" Text="{Binding DateRangeTime.Hours, Converter={StaticResource TimeSpanConverter}}" TextAlignment="Center" MaxLength="2"/>
+                        <TextBox Grid.Column="0" Text="{Binding DateRangeTime.Hours, Mode=TwoWay}" TextAlignment="Center" MaxLength="2"/>
                         <TextBlock Grid.Column="1" Text=":" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="5,0"/>
-                        <TextBox Grid.Column="2" Text="{Binding DateRangeTime.Minutes, Converter={StaticResource TimeSpanConverter}}" TextAlignment="Center" MaxLength="2"/>
+                        <TextBox Grid.Column="2" Text="{Binding DateRangeTime.Minutes, Mode=TwoWay}" TextAlignment="Center" MaxLength="2"/>
                     </Grid>
                 </Grid>
             </GroupBox>
@@ -139,9 +139,9 @@
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
                                         
-                                        <TextBox Grid.Column="0" Text="{Binding Time.Hours}" TextAlignment="Center" MaxLength="2"/>
+                                        <TextBox Grid.Column="0" Text="{Binding Time.Hours, Mode=TwoWay}" TextAlignment="Center" MaxLength="2"/>
                                         <TextBlock Grid.Column="1" Text=":" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="5,0"/>
-                                        <TextBox Grid.Column="2" Text="{Binding Time.Minutes}" TextAlignment="Center" MaxLength="2"/>
+                                        <TextBox Grid.Column="2" Text="{Binding Time.Minutes, Mode=TwoWay}" TextAlignment="Center" MaxLength="2"/>
                                     </Grid>
                                 </Grid>
                             </DataTemplate>

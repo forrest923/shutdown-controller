@@ -59,7 +59,6 @@ namespace ShutdownController.Models
         /// <summary>
         /// 按星期几的关机计划
         /// </summary>
-        [NonSerialized]
         private Dictionary<DayOfWeek, TimeSpan> _weekDayShutdownTimes;
         
         /// <summary>
@@ -67,7 +66,15 @@ namespace ShutdownController.Models
         /// </summary>
         public Dictionary<DayOfWeek, TimeSpan> WeekDayShutdownTimes 
         {
-            get => _weekDayShutdownTimes;
+            get
+            {
+                // 确保字典不为空
+                if (_weekDayShutdownTimes == null)
+                {
+                    _weekDayShutdownTimes = new Dictionary<DayOfWeek, TimeSpan>();
+                }
+                return _weekDayShutdownTimes;
+            }
             set => _weekDayShutdownTimes = value;
         }
         
