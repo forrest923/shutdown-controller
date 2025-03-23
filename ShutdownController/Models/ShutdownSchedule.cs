@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ShutdownController.ViewModels;
 
 namespace ShutdownController.Models
 {
@@ -58,7 +59,17 @@ namespace ShutdownController.Models
         /// <summary>
         /// 按星期几的关机计划
         /// </summary>
-        public Dictionary<DayOfWeek, TimeSpan> WeekDayShutdownTimes { get; set; }
+        [NonSerialized]
+        private Dictionary<DayOfWeek, TimeSpan> _weekDayShutdownTimes;
+        
+        /// <summary>
+        /// 按星期几的关机计划
+        /// </summary>
+        public Dictionary<DayOfWeek, TimeSpan> WeekDayShutdownTimes 
+        {
+            get => _weekDayShutdownTimes;
+            set => _weekDayShutdownTimes = value;
+        }
         
         /// <summary>
         /// 按日期范围的关机时间
@@ -73,7 +84,7 @@ namespace ShutdownController.Models
             Id = Guid.NewGuid();
             Mode = ScheduleMode.WeekDay;
             IsEnabled = true;
-            WeekDayShutdownTimes = new Dictionary<DayOfWeek, TimeSpan>();
+            _weekDayShutdownTimes = new Dictionary<DayOfWeek, TimeSpan>();
         }
         
         /// <summary>

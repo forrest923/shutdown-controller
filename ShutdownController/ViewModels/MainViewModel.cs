@@ -142,24 +142,32 @@ namespace ShutdownController.ViewModels
         /// </summary>
         public MainViewModel()
         {
-            // 初始化集合
-            Schedules = new ObservableCollection<ShutdownSchedule>();
-            WeekDayTimes = new ObservableCollection<DayTimeViewModel>();
-            
-            // 初始化命令
-            AddScheduleCommand = new RelayCommand(AddSchedule);
-            DeleteScheduleCommand = new RelayCommand(DeleteSchedule, CanDeleteSchedule);
-            SaveCommand = new RelayCommand(Save, CanSave);
-            CloseCommand = new RelayCommand(Close);
-            
-            // 加载配置
-            LoadConfig();
-            
-            // 默认按星期几模式
-            SelectedMode = ScheduleMode.WeekDay;
-            
-            // 设置默认时间
-            DateRangeTime = new TimeWrapper(new TimeSpan(21, 0, 0)); // 默认晚上9点
+            try
+            {
+                // 初始化集合
+                Schedules = new ObservableCollection<ShutdownSchedule>();
+                WeekDayTimes = new ObservableCollection<DayTimeViewModel>();
+                
+                // 初始化命令
+                AddScheduleCommand = new RelayCommand(AddSchedule);
+                DeleteScheduleCommand = new RelayCommand(DeleteSchedule, CanDeleteSchedule);
+                SaveCommand = new RelayCommand(Save, CanSave);
+                CloseCommand = new RelayCommand(Close);
+                
+                // 加载配置
+                LoadConfig();
+                
+                // 默认按星期几模式
+                SelectedMode = ScheduleMode.WeekDay;
+                
+                // 设置默认时间
+                DateRangeTime = new TimeWrapper(new TimeSpan(21, 0, 0)); // 默认晚上9点
+            }
+            catch (Exception ex)
+            {
+                LogService.LogError("初始化MainViewModel失败", ex);
+                throw;
+            }
         }
         
         /// <summary>
@@ -167,21 +175,28 @@ namespace ShutdownController.ViewModels
         /// </summary>
         private void LoadConfig()
         {
-            var config = ConfigService.GetConfig();
-            
-            Schedules.Clear();
-            foreach (var schedule in config.Schedules)
+            try
             {
-                Schedules.Add(schedule);
+                var config = ConfigService.GetConfig();
+                
+                Schedules.Clear();
+                foreach (var schedule in config.Schedules)
+                {
+                    Schedules.Add(schedule);
+                }
+                
+                if (Schedules.Count > 0)
+                {
+                    SelectedSchedule = Schedules[0];
+                }
+                else
+                {
+                    InitializeWeekDayTimes();
+                }
             }
-            
-            if (Schedules.Count > 0)
+            catch (Exception ex)
             {
-                SelectedSchedule = Schedules[0];
-            }
-            else
-            {
-                InitializeWeekDayTimes();
+                LogService.LogError("加载配置失败", ex);
             }
         }
         

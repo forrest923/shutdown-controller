@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Windows;
 using ShutdownController.Services;
 using ShutdownController.ViewModels;
@@ -19,10 +20,27 @@ namespace ShutdownController.Views
         {
             try
             {
+                LogService.LogInfo("开始初始化MainWindow");
+                
+                // 初始化组件
                 InitializeComponent();
                 
-                _viewModel = new MainViewModel();
-                DataContext = _viewModel;
+                // 创建并设置ViewModel
+                try
+                {
+                    _viewModel = new MainViewModel();
+                    DataContext = _viewModel;
+                    
+                    LogService.LogInfo("MainViewModel创建成功");
+                }
+                catch (Exception ex)
+                {
+                    LogService.LogError("创建MainViewModel失败", ex);
+                    MessageBox.Show($"创建视图模型失败: {ex.Message}\n\n详细信息: {ex.StackTrace}", 
+                        "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    Close();
+                    return;
+                }
                 
                 // 注册事件
                 _viewModel.WindowClose += ViewModel_WindowClose;
@@ -32,13 +50,22 @@ namespace ShutdownController.Views
                     _viewModel.WindowClose -= ViewModel_WindowClose;
                 };
                 
-                LogService.LogInfo("主窗口成功初始化");
+                LogService.LogInfo("MainWindow初始化完成");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"初始化界面时出错：{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                LogService.LogError("初始化主窗口失败", ex);
-                Close();
+                LogService.LogError("初始化MainWindow失败", ex);
+                MessageBox.Show($"初始化界面时出错：{ex.Message}\n\n详细信息: {ex.StackTrace}", 
+                    "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                
+                try
+                {
+                    Close();
+                }
+                catch
+                {
+                    // 忽略关闭时的异常
+                }
             }
         }
         
@@ -53,8 +80,16 @@ namespace ShutdownController.Views
             }
             catch (Exception ex)
             {
-                LogService.LogError("关闭主窗口时出错", ex);
-                Application.Current.Shutdown();
+                LogService.LogError("关闭MainWindow时出错", ex);
+                try
+                {
+                    Application.Current.Shutdown();
+                }
+                catch
+                {
+                    // 忽略强制关闭时的异常
+                    Process.GetCurrentProcess().Kill();
+                }
             }
         }
     }
