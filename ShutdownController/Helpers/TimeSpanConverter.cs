@@ -15,17 +15,27 @@ namespace ShutdownController.Helpers
         /// </summary>
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is TimeSpan timeSpan)
+            try
             {
-                return new TimeWrapper(timeSpan);
+                LogService.LogInfo($"TimeSpanConverter.Convert - 输入值类型: {value?.GetType().Name}, 目标类型: {targetType.Name}");
+                
+                if (value is TimeSpan timeSpan)
+                {
+                    return new TimeWrapper(timeSpan);
+                }
+                
+                if (value is TimeSpan? nullableTimeSpan && nullableTimeSpan.HasValue)
+                {
+                    return new TimeWrapper(nullableTimeSpan.Value);
+                }
+                
+                return new TimeWrapper(new TimeSpan(0, 0, 0));
             }
-            
-            if (value is TimeSpan? nullableTimeSpan && nullableTimeSpan.HasValue)
+            catch (Exception ex)
             {
-                return new TimeWrapper(nullableTimeSpan.Value);
+                LogService.LogError("TimeSpanConverter.Convert 转换失败", ex);
+                return new TimeWrapper(new TimeSpan(0, 0, 0));
             }
-            
-            return new TimeWrapper(new TimeSpan(0, 0, 0));
         }
 
         /// <summary>
@@ -33,12 +43,35 @@ namespace ShutdownController.Helpers
         /// </summary>
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is TimeWrapper timeWrapper)
+            try
             {
-                return timeWrapper.TimeSpan;
+                LogService.LogInfo($"TimeSpanConverter.ConvertBack - 输入值类型: {value?.GetType().Name}, 目标类型: {targetType.Name}");
+                
+                if (value is TimeWrapper timeWrapper)
+                {
+                    return timeWrapper.TimeSpan;
+                }
+                
+                if (value is string timeString && int.TryParse(timeString, out int timeValue))
+                {
+                    // 根据参数决定是小时还是分钟
+                    if (parameter != null && parameter.ToString() == "Minutes")
+                    {
+                        return new TimeSpan(0, timeValue, 0);
+                    }
+                    else
+                    {
+                        return new TimeSpan(timeValue, 0, 0);
+                    }
+                }
+                
+                return TimeSpan.Zero;
             }
-            
-            return TimeSpan.Zero;
+            catch (Exception ex)
+            {
+                LogService.LogError("TimeSpanConverter.ConvertBack 转换失败", ex);
+                return TimeSpan.Zero;
+            }
         }
     }
 } 

@@ -357,7 +357,14 @@ namespace ShutdownController.ViewModels
                     
                     SelectedSchedule.StartDate = StartDate;
                     SelectedSchedule.EndDate = EndDate;
-                    SelectedSchedule.DateRangeShutdownTime = DateRangeTime.TimeSpan;
+                    try {
+                        // 使用TimeWrapper的TimeSpan属性
+                        SelectedSchedule.DateRangeShutdownTime = DateRangeTime?.TimeSpan;
+                        LogService.LogInfo($"设置DateRangeShutdownTime为: {DateRangeTime?.TimeSpan}");
+                    } catch (Exception ex) {
+                        LogService.LogError("设置DateRangeShutdownTime失败", ex);
+                        MessageBox.Show($"设置关机时间失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
                 }
                 else // WeekDay模式
                 {
@@ -368,7 +375,15 @@ namespace ShutdownController.ViewModels
                     {
                         if (dayTime.IsEnabled)
                         {
-                            SelectedSchedule.WeekDayShutdownTimes[dayTime.DayOfWeek] = dayTime.Time.TimeSpan;
+                            try {
+                                TimeSpan timeSpan = dayTime.Time.TimeSpan;
+                                SelectedSchedule.WeekDayShutdownTimes[dayTime.DayOfWeek] = timeSpan;
+                                LogService.LogInfo($"设置 {dayTime.DayName} 的关机时间为: {timeSpan}");
+                            } catch (Exception ex) {
+                                LogService.LogError($"设置 {dayTime.DayName} 的关机时间失败", ex);
+                                MessageBox.Show($"设置 {dayTime.DayName} 的关机时间失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                                return;
+                            }
                         }
                     }
                     
@@ -486,9 +501,18 @@ namespace ShutdownController.ViewModels
             get => _hours;
             set
             {
-                if (SetProperty(ref _hours, value))
+                try
                 {
-                    UpdateTimeSpan();
+                    // 边界检查
+                    int validValue = Math.Max(0, Math.Min(23, value));
+                    if (SetProperty(ref _hours, validValue))
+                    {
+                        UpdateTimeSpan();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogService.LogError("设置Hours属性失败", ex);
                 }
             }
         }
@@ -501,9 +525,18 @@ namespace ShutdownController.ViewModels
             get => _minutes;
             set
             {
-                if (SetProperty(ref _minutes, value))
+                try
                 {
-                    UpdateTimeSpan();
+                    // 边界检查
+                    int validValue = Math.Max(0, Math.Min(59, value));
+                    if (SetProperty(ref _minutes, validValue))
+                    {
+                        UpdateTimeSpan();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogService.LogError("设置Minutes属性失败", ex);
                 }
             }
         }
@@ -516,14 +549,21 @@ namespace ShutdownController.ViewModels
             get => _timeSpan;
             set
             {
-                if (_timeSpan != value)
+                try
                 {
-                    _timeSpan = value;
-                    _hours = _timeSpan.Hours;
-                    _minutes = _timeSpan.Minutes;
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(Hours));
-                    OnPropertyChanged(nameof(Minutes));
+                    if (_timeSpan != value)
+                    {
+                        _timeSpan = value;
+                        _hours = _timeSpan.Hours;
+                        _minutes = _timeSpan.Minutes;
+                        OnPropertyChanged();
+                        OnPropertyChanged(nameof(Hours));
+                        OnPropertyChanged(nameof(Minutes));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogService.LogError("设置TimeSpan属性失败", ex);
                 }
             }
         }
@@ -534,7 +574,17 @@ namespace ShutdownController.ViewModels
         /// <param name="timeSpan">初始TimeSpan</param>
         public TimeWrapper(TimeSpan timeSpan)
         {
-            TimeSpan = timeSpan;
+            try
+            {
+                TimeSpan = timeSpan;
+            }
+            catch (Exception ex)
+            {
+                LogService.LogError("初始化TimeWrapper失败", ex);
+                _timeSpan = new TimeSpan(0, 0, 0);
+                _hours = 0;
+                _minutes = 0;
+            }
         }
         
         /// <summary>
@@ -542,8 +592,15 @@ namespace ShutdownController.ViewModels
         /// </summary>
         private void UpdateTimeSpan()
         {
-            _timeSpan = new TimeSpan(_hours, _minutes, 0);
-            OnPropertyChanged(nameof(TimeSpan));
+            try
+            {
+                _timeSpan = new TimeSpan(_hours, _minutes, 0);
+                OnPropertyChanged(nameof(TimeSpan));
+            }
+            catch (Exception ex)
+            {
+                LogService.LogError("更新TimeSpan值失败", ex);
+            }
         }
         
         /// <summary>
@@ -551,7 +608,7 @@ namespace ShutdownController.ViewModels
         /// </summary>
         public static implicit operator TimeSpan(TimeWrapper wrapper)
         {
-            return wrapper.TimeSpan;
+            return wrapper?.TimeSpan ?? TimeSpan.Zero;
         }
     }
 } 
