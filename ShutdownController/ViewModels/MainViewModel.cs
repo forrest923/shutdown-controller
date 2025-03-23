@@ -19,7 +19,7 @@ namespace ShutdownController.ViewModels
         private bool _isWeekDayMode;
         private DateTime? _startDate;
         private DateTime? _endDate;
-        private TimeSpan _dateRangeTime;
+        private TimeWrapper _dateRangeTime;
         private ObservableCollection<DayTimeViewModel> _weekDayTimes;
         
         /// <summary>
@@ -97,7 +97,7 @@ namespace ShutdownController.ViewModels
         /// <summary>
         /// 日期范围关机时间
         /// </summary>
-        public TimeSpan DateRangeTime
+        public TimeWrapper DateRangeTime
         {
             get => _dateRangeTime;
             set => SetProperty(ref _dateRangeTime, value);
@@ -159,7 +159,7 @@ namespace ShutdownController.ViewModels
             SelectedMode = ScheduleMode.WeekDay;
             
             // 设置默认时间
-            DateRangeTime = new TimeSpan(21, 0, 0); // 默认晚上9点
+            DateRangeTime = new TimeWrapper(new TimeSpan(21, 0, 0)); // 默认晚上9点
         }
         
         /// <summary>
@@ -204,7 +204,7 @@ namespace ShutdownController.ViewModels
             // 设置默认时间为晚上9点
             foreach (var dayTime in WeekDayTimes)
             {
-                dayTime.Time = new TimeSpan(21, 0, 0);
+                dayTime.Time = new TimeWrapper(new TimeSpan(21, 0, 0));
                 dayTime.IsEnabled = true;
             }
         }
@@ -225,7 +225,7 @@ namespace ShutdownController.ViewModels
                 // 加载日期范围模式的数据
                 StartDate = SelectedSchedule.StartDate;
                 EndDate = SelectedSchedule.EndDate;
-                DateRangeTime = SelectedSchedule.DateRangeShutdownTime ?? new TimeSpan(21, 0, 0);
+                DateRangeTime = new TimeWrapper(SelectedSchedule.DateRangeShutdownTime ?? new TimeSpan(21, 0, 0));
             }
             else
             {
@@ -236,7 +236,7 @@ namespace ShutdownController.ViewModels
                 {
                     if (SelectedSchedule.WeekDayShutdownTimes.TryGetValue(dayTime.DayOfWeek, out TimeSpan time))
                     {
-                        dayTime.Time = time;
+                        dayTime.Time = new TimeWrapper(time);
                         dayTime.IsEnabled = true;
                     }
                     else
@@ -342,7 +342,7 @@ namespace ShutdownController.ViewModels
                     
                     SelectedSchedule.StartDate = StartDate;
                     SelectedSchedule.EndDate = EndDate;
-                    SelectedSchedule.DateRangeShutdownTime = DateRangeTime;
+                    SelectedSchedule.DateRangeShutdownTime = DateRangeTime.TimeSpan;
                 }
                 else // WeekDay模式
                 {
@@ -353,7 +353,7 @@ namespace ShutdownController.ViewModels
                     {
                         if (dayTime.IsEnabled)
                         {
-                            SelectedSchedule.WeekDayShutdownTimes[dayTime.DayOfWeek] = dayTime.Time;
+                            SelectedSchedule.WeekDayShutdownTimes[dayTime.DayOfWeek] = dayTime.Time.TimeSpan;
                         }
                     }
                     
@@ -401,7 +401,7 @@ namespace ShutdownController.ViewModels
     {
         private DayOfWeek _dayOfWeek;
         private string _dayName;
-        private TimeSpan _time;
+        private TimeWrapper _time;
         private bool _isEnabled;
         
         /// <summary>
@@ -425,7 +425,7 @@ namespace ShutdownController.ViewModels
         /// <summary>
         /// 关机时间
         /// </summary>
-        public TimeSpan Time
+        public TimeWrapper Time
         {
             get => _time;
             set => SetProperty(ref _time, value);
@@ -447,10 +447,96 @@ namespace ShutdownController.ViewModels
         /// <param name="dayName">星期几名称</param>
         public DayTimeViewModel(DayOfWeek dayOfWeek, string dayName)
         {
-            _dayOfWeek = dayOfWeek;
-            _dayName = dayName;
-            _time = new TimeSpan(21, 0, 0); // 默认晚上9点
-            _isEnabled = false;
+            DayOfWeek = dayOfWeek;
+            DayName = dayName;
+            Time = new TimeWrapper(new TimeSpan(21, 0, 0));
+            IsEnabled = false;
+        }
+    }
+    
+    /// <summary>
+    /// TimeSpan包装类，提供Hours和Minutes属性用于数据绑定
+    /// </summary>
+    public class TimeWrapper : ViewModelBase
+    {
+        private TimeSpan _timeSpan;
+        private int _hours;
+        private int _minutes;
+        
+        /// <summary>
+        /// 小时
+        /// </summary>
+        public int Hours
+        {
+            get => _hours;
+            set
+            {
+                if (SetProperty(ref _hours, value))
+                {
+                    UpdateTimeSpan();
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 分钟
+        /// </summary>
+        public int Minutes
+        {
+            get => _minutes;
+            set
+            {
+                if (SetProperty(ref _minutes, value))
+                {
+                    UpdateTimeSpan();
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 底层TimeSpan对象
+        /// </summary>
+        public TimeSpan TimeSpan
+        {
+            get => _timeSpan;
+            set
+            {
+                if (_timeSpan != value)
+                {
+                    _timeSpan = value;
+                    _hours = _timeSpan.Hours;
+                    _minutes = _timeSpan.Minutes;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(Hours));
+                    OnPropertyChanged(nameof(Minutes));
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="timeSpan">初始TimeSpan</param>
+        public TimeWrapper(TimeSpan timeSpan)
+        {
+            TimeSpan = timeSpan;
+        }
+        
+        /// <summary>
+        /// 更新TimeSpan值
+        /// </summary>
+        private void UpdateTimeSpan()
+        {
+            _timeSpan = new TimeSpan(_hours, _minutes, 0);
+            OnPropertyChanged(nameof(TimeSpan));
+        }
+        
+        /// <summary>
+        /// 隐式转换为TimeSpan
+        /// </summary>
+        public static implicit operator TimeSpan(TimeWrapper wrapper)
+        {
+            return wrapper.TimeSpan;
         }
     }
 } 

@@ -1,5 +1,6 @@
 using System;
 using System.Windows;
+using ShutdownController.Services;
 using ShutdownController.ViewModels;
 
 namespace ShutdownController.Views
@@ -16,18 +17,29 @@ namespace ShutdownController.Views
         /// </summary>
         public MainWindow()
         {
-            InitializeComponent();
-            
-            _viewModel = new MainViewModel();
-            DataContext = _viewModel;
-            
-            // 注册事件
-            _viewModel.WindowClose += ViewModel_WindowClose;
-            
-            // 窗口关闭时取消注册事件
-            Closed += (s, e) => {
-                _viewModel.WindowClose -= ViewModel_WindowClose;
-            };
+            try
+            {
+                InitializeComponent();
+                
+                _viewModel = new MainViewModel();
+                DataContext = _viewModel;
+                
+                // 注册事件
+                _viewModel.WindowClose += ViewModel_WindowClose;
+                
+                // 窗口关闭时取消注册事件
+                Closed += (s, e) => {
+                    _viewModel.WindowClose -= ViewModel_WindowClose;
+                };
+                
+                LogService.LogInfo("主窗口成功初始化");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"初始化界面时出错：{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                LogService.LogError("初始化主窗口失败", ex);
+                Close();
+            }
         }
         
         /// <summary>
@@ -35,7 +47,15 @@ namespace ShutdownController.Views
         /// </summary>
         private void ViewModel_WindowClose(object sender, EventArgs e)
         {
-            Close();
+            try
+            {
+                Close();
+            }
+            catch (Exception ex)
+            {
+                LogService.LogError("关闭主窗口时出错", ex);
+                Application.Current.Shutdown();
+            }
         }
     }
 } 

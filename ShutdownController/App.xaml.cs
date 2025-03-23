@@ -47,44 +47,25 @@ namespace ShutdownController
             _shutdownService = new ShutdownService();
             _notifyIconService = new NotifyIconService();
 
-            // 检查是否首次运行
-            if (ConfigService.IsFirstRun())
+            // 检查配置，第一次运行时设置默认密码
+            var config = ConfigService.GetConfig();
+            if (config.IsFirstRun)
             {
-                ShowSetupWindow();
-            }
-            else
-            {
-                // 启动关机服务
-                _shutdownService.Start();
+                // 使用固定密码：12345678a
+                ConfigService.SetFixedPassword();
                 
-                // 如果有命令行参数"-setup"，显示设置窗口
-                if (e.Args.Length > 0 && e.Args[0].ToLower() == "-setup")
-                {
-                    ShowLoginWindow();
-                }
+                // 提示用户应用已启动，密码已设置
+                MessageBox.Show("关机控制器已启动，系统使用固定密码：12345678a", 
+                    "关机控制器", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-        }
-
-        /// <summary>
-        /// 显示首次运行的设置窗口
-        /// </summary>
-        private void ShowSetupWindow()
-        {
-            var setupWindow = new SetupWindow();
-            setupWindow.ShowDialog();
             
-            if (setupWindow.IsSetupCompleted)
+            // 启动关机服务
+            _shutdownService.Start();
+            
+            // 如果有命令行参数"-setup"，显示设置窗口
+            if (e.Args.Length > 0 && e.Args[0].ToLower() == "-setup")
             {
-                // 启动关机服务
-                _shutdownService.Start();
-                
-                // 显示成功消息，提示用户应用程序将在系统托盘运行
-                MessageBox.Show("设置完成！应用程序将在系统托盘中运行，您可以通过双击托盘图标打开设置界面。", 
-                                "设置成功", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            else
-            {
-                Shutdown();
+                ShowLoginWindow();
             }
         }
 

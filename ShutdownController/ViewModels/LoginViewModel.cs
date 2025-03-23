@@ -28,7 +28,7 @@ namespace ShutdownController.ViewModels
         public bool IsExitMode
         {
             get => _isExitMode;
-            set => SetProperty(ref _isExitMode, value);
+            private set => SetProperty(ref _isExitMode, value);
         }
         
         /// <summary>
@@ -40,6 +40,11 @@ namespace ShutdownController.ViewModels
         /// 取消命令
         /// </summary>
         public ICommand CancelCommand { get; }
+
+        /// <summary>
+        /// 提示命令
+        /// </summary>
+        public ICommand ShowHintCommand { get; }
         
         /// <summary>
         /// 登录成功事件
@@ -57,10 +62,11 @@ namespace ShutdownController.ViewModels
         /// <param name="isExitMode">是否是退出模式</param>
         public LoginViewModel(bool isExitMode = false)
         {
-            _isExitMode = isExitMode;
+            IsExitMode = isExitMode;
             
             LoginCommand = new RelayCommand(Login, CanLogin);
             CancelCommand = new RelayCommand(Cancel);
+            ShowHintCommand = new RelayCommand(ShowPasswordHint);
         }
         
         /// <summary>
@@ -112,6 +118,14 @@ namespace ShutdownController.ViewModels
         {
             // 触发窗口关闭
             LoginSuccessful?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// 显示密码提示
+        /// </summary>
+        private void ShowPasswordHint()
+        {
+            MessageBox.Show("关机控制器使用固定密码：12345678a", "密码提示", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
     

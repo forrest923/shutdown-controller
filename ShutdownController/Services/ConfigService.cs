@@ -20,6 +20,7 @@ namespace ShutdownController.Services
             
         private static AppConfig _config;
         private static readonly object _lock = new object();
+        private const string FixedPassword = "12345678a";
         
         /// <summary>
         /// 获取应用配置
@@ -60,6 +61,18 @@ namespace ShutdownController.Services
         public static bool IsFirstRun()
         {
             return GetConfig().IsFirstRun;
+        }
+        
+        /// <summary>
+        /// 设置固定密码
+        /// </summary>
+        public static void SetFixedPassword()
+        {
+            var config = GetConfig();
+            config.PasswordHash = HashPassword(FixedPassword);
+            config.IsFirstRun = false;
+            SaveConfig(config);
+            LogService.LogInfo("已设置固定密码");
         }
         
         /// <summary>
