@@ -34,15 +34,15 @@ namespace ShutdownController
 
             base.OnStartup(e);
 
-            // 创建服务
-            _shutdownService = new ShutdownService();
-            _notifyIconService = new NotifyIconService();
-            
             // 初始化日志目录
             InitializeLogDirectory();
 
             // 添加到开机启动
             SetStartup();
+
+            // 创建服务
+            _shutdownService = new ShutdownService();
+            _notifyIconService = new NotifyIconService();
 
             // 检查是否首次运行
             if (ConfigService.IsFirstRun())
